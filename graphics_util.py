@@ -1,17 +1,56 @@
 import numpy as np
-from data_util import Vertex, sort_faces
 import pygame as pg
+from data_util import sort_faces
 
 class Graphics():
-    def __init__(self, vertex_matrix, faces):
+    """
+    A class to handle the graphics of the 3D object.
+
+    Attributes:
+        vertex_matrix: a VertexMatrix object
+        faces: a list of Face objects
+        mouse_sensitivity: the sensitivity of the mouse
+        screen_size: the size of the screen
+        prev_mouse_pos: the previous mouse position
+        curr_mouse_pos: the current mouse position
+        color_limit_low: the lower limit of the color
+        color_limit_high: the upper limit of the color
+    
+    Methods:
+        to_pygame_coordinates: change the coordinates of the vertices to pygame coordinates
+        plot: plot the 3D object
+        update: update the 3D object
+        get_polygon_color: get the color of the polygon based on its angle wrt. the z-axis
+        get_angle: get the angle of a polygon wrt. the z-axis
+    """
+    def __init__(self,
+                 vertex_matrix,
+                 faces,
+                 window_size=(800, 800),
+                 mouse_sensitivity=0.003,
+                 color_limit_low="0x00005F",
+                 color_limit_high="0x0000FF"):
+        """
+        Constructor for the Graphics class.
+
+        Input: 
+            vertex_matrix: a VertexMatrix object
+            faces: a list of Face objects
+            mouse_sensitivity: the sensitivity of the mouse
+            window_size: the size of the screen
+            color_limit_low: the lower limit of the color
+            color_limit_high: the upper limit of the color
+        """
+        
         self.vertex_matrix = vertex_matrix
         # self.vertices = vertex_matrix.vertices
         self.faces = faces
-        self.screen_size = np.array([800, 800])
+        self.mouse_sensitivity = mouse_sensitivity
+        self.screen_size = np.array(window_size)
         self.prev_mouse_pos = np.array([0, 0])
         self.curr_mouse_pos = np.array([0, 0])
-        self.color_limit_low = "0x00005F"
-        self.color_limit_high = "0x0000FF"
+        self.color_limit_low = color_limit_low
+        self.color_limit_high = color_limit_high
         vertices = vertex_matrix.get_vertices()
         max_x_coord = max([vertex.x for vertex in vertices])
         max_y_coord = max([vertex.y for vertex in vertices])
@@ -22,7 +61,10 @@ class Graphics():
 
     def to_pygame_coordinates(self, vertices):
         """
-        Change the coordinates of the vertices to pygame coordinates
+        Change the coordinates of the vertices to pygame coordinates.
+
+        Input:
+            vertices: a list of Vertex objects
         """
         # scale the vertices to fit the screen
         for vertex in vertices:
@@ -33,7 +75,10 @@ class Graphics():
 
     def plot(self, mode='part1'):
         """
-        Plot 3D vertices and edges in 2D space with pygame
+        Plot 3D vertices and edges in 2D space with pygame. 
+
+        Input:
+            mode: the mode of the program (can be 'part1' or 'part2')
         """
         # Initialize pygame
         pg.init()
@@ -63,8 +108,6 @@ class Graphics():
             for face in self.faces:
                 vertices = face.get_vertices()
                 if mode == 'part1':
-                    #for vertex in vertices:
-                        #print(vertex.x, vertex.y, vertex.z)
                     # draw edges between vertices
                     pg.draw.line(screen, (0, 0, 255), (int(vertices[0].x), int(vertices[0].y)), (int(vertices[1].x), int(vertices[1].y)))
                     pg.draw.line(screen, (0, 0, 255), (int(vertices[1].x), int(vertices[1].y)), (int(vertices[2].x), int(vertices[2].y)))
@@ -84,8 +127,7 @@ class Graphics():
     
     def update(self):
         """
-        Update the vertices and faces according to mouse drag
-        Need to incorporate rotation along x, y, and z axis using matrix operations
+        Update the vertices and faces according to mouse drag.
         """
         # Get the mouse movement
         mouse_movement = self.prev_mouse_pos - self.curr_mouse_pos
@@ -93,17 +135,18 @@ class Graphics():
         if mouse_movement[0] == 0 and mouse_movement[1] == 0:
             return
         else:
-            theta = mouse_movement[1] * 0.001
+            theta = mouse_movement[1] * self.mouse_sensitivity
             self.vertex_matrix.rotate_along_axis(theta, 'x')
 
-            theta = -mouse_movement[0] * 0.001
+            theta = -mouse_movement[0] * self.mouse_sensitivity
             self.vertex_matrix.rotate_along_axis(theta, 'y')
     
     def get_polygon_color(self, v1, v2, v3):
         """
-        Given 3 vertices, find the color of the polygong according to the angle between this surface and the z-axis
-        Color needs to be calculated in between the color limit low and high
-        Color will be limit high if the angle is 0 and color will be limit low if the angle is 90
+        Find the color of a polygon given 3 vertices.
+
+        Input:
+            v1, v2, v3: Vertex objects
         """
         # Get the angle between the surface and the z-axis
         angle = self.get_angle(v1, v2, v3)
@@ -112,8 +155,6 @@ class Graphics():
         # interpolate between the color limit low and high according to angle between 0 to 90
         color_range = int(self.color_limit_high, 16) - int(self.color_limit_low, 16)
         color = int(self.color_limit_low, 16) + int(angle / 90 * color_range)
-        # color = abs(color)
-        # print(color)
         color = hex(color)
         # convert from hex to rgb
         color = (0,0,int(color[2:], 16))
@@ -121,7 +162,10 @@ class Graphics():
     
     def get_angle(self, v1, v2, v3):
         """
-        Given 3 vertices, find the angle between the surface and the z-axis
+        Find the angle between a surface formed by three vertices and the z-axis.
+
+        Input:
+            v1, v2, v3: Vertex objects
         """
         # Get the normal vector of the surface
         # Get the 2 vectors of the surface
@@ -133,7 +177,6 @@ class Graphics():
         # Get the cross product of the 2 vectors
         normal = np.cross(v12, v13)
         # Get the angle between the normal and the z-axis
-        # angle = np.arccos(normal[2] / np.linalg.norm(normal)) * 180 / np.pi
         dot = np.dot(np.array([0,0,1]), normal)
         angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi) - 90.0
         return angle

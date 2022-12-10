@@ -1,12 +1,34 @@
 import numpy as np
 
 class Vertex():
+    """
+    A class to represent a vertex in 3D space.
+
+    Attributes:
+        x: the x-coordinate of the vertex
+        y: the y-coordinate of the vertex
+        z: the z-coordinate of the vertex
+    
+    Methods:
+        None
+    """
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
     
 class Face():
+    """
+    A class to represent a face (formed by three vertices) in 3D space.
+
+    Attributes:
+        v1: the first vertex
+        v2: the second vertex
+        v3: the third vertex
+    
+    Methods:
+        get_vertices: get the vertices of the face
+    """
     def __init__(self, v1, v2, v3):
         self.v1 = v1
         self.v2 = v2
@@ -16,13 +38,25 @@ class Face():
         return [self.v1, self.v2, self.v3]
 
 class VertexMatrix():
+    """
+    A class to represent a matrix of vertices.
+
+    Attributes:
+        vertices: a list of Vertex objects
+    
+    Methods:
+        update_matrix: create/update a matrix of vertices
+        get_matrix: get the matrix
+        get_vertices: get the vertices
+        rotate_along_axis: rotate the vertices along an axis for a given angle
+    """
     def __init__(self, vertices):
         self.vertices = vertices
         self.matrix = None
         self.update_matrix(self.vertices)
     
     def update_matrix(self, vertices):
-        """Create a matrix of vertices"""
+        """Create/update a matrix of vertices"""
         matrix = np.zeros((3, len(vertices)))
         for i, vertex in enumerate(vertices):
             matrix[0][i] = vertex.x
