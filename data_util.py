@@ -18,16 +18,17 @@ class Face():
 class VertexMatrix():
     def __init__(self, vertices):
         self.vertices = vertices
-        self.matrix = self.create_matrix()
+        self.matrix = None
+        self.update_matrix(self.vertices)
     
-    def create_matrix(self):
+    def update_matrix(self, vertices):
         """Create a matrix of vertices"""
-        matrix = np.zeros((3, len(self.vertices)))
-        for i, vertex in enumerate(self.vertices):
+        matrix = np.zeros((3, len(vertices)))
+        for i, vertex in enumerate(vertices):
             matrix[0][i] = vertex.x
             matrix[1][i] = vertex.y
             matrix[2][i] = vertex.z
-        return matrix
+        self.matrix = matrix
     
     def get_matrix(self):
         """Get the matrix"""
@@ -59,6 +60,7 @@ class VertexMatrix():
             vertex.x = self.matrix[0][i]
             vertex.y = self.matrix[1][i]
             vertex.z = self.matrix[2][i]
+        self.update_matrix(self.vertices)
 
 def sort_faces(faces):
     """
@@ -70,7 +72,6 @@ def sort_faces(faces):
         sorted_faces: a list of Face objects sorted by z-value
     """
     sorted_faces = sorted(faces, key=lambda face: (face.v1.z + face.v2.z + face.v3.z) / 3)
-    sorted_faces.reverse()
     return sorted_faces
 
 def read_file(file_name):

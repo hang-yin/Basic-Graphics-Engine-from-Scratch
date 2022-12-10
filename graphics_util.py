@@ -17,21 +17,19 @@ class Graphics():
         max_y_coord = max([vertex.y for vertex in vertices])
         max_coord = max([max_x_coord, max_y_coord])
         self.scale = 0.25 * min(self.screen_size) / max_coord
-    
+        self.origin = self.screen_size / 2
+        self.to_pygame_coordinates(self.vertex_matrix.get_vertices())
+
     def to_pygame_coordinates(self, vertices):
         """
         Change the coordinates of the vertices to pygame coordinates
         """
-        game_vertices = []
-        # set origin to center of screen
-        origin = self.screen_size / 2
         # scale the vertices to fit the screen
-        
         for vertex in vertices:
-            x = vertex.x * self.scale + origin[0]
-            y = vertex.y * self.scale + origin[1]
-            game_vertices.append(Vertex(x, y, vertex.z))
-        return game_vertices
+            vertex.x = vertex.x * self.scale + self.origin[0]
+            vertex.y = vertex.y * self.scale + self.origin[1]
+            vertex.z = vertex.z * self.scale + self.origin[0]
+        self.vertex_matrix.update_matrix(vertices)
 
     def plot(self, mode='part1'):
         """
@@ -44,35 +42,29 @@ class Graphics():
         # Run until the user asks to quit
         running = True
         while running:
-            
             for event in pg.event.get():
                 # Did the user click the window close button?
                 if event.type == pg.QUIT:
                     running = False
+                # Is there a mouse movement?
                 if event.type == pg.MOUSEMOTION:
+                    self.prev_mouse_pos = self.curr_mouse_pos
+                    self.curr_mouse_pos = np.array(pg.mouse.get_pos())
                     if pg.mouse.get_pressed()[0]:
                         # If the user is dragging the mouse, update the vertices
-                        self.prev_mouse_pos = self.curr_mouse_pos
-                        self.curr_mouse_pos = np.array(pg.mouse.get_pos())
                         self.update()
-                    else:
-                        self.prev_mouse_pos = self.curr_mouse_pos
-                        self.curr_mouse_pos = np.array(pg.mouse.get_pos())
-                    
-            # set origin to center of screen
             # Fill the background with white
             screen.fill((255, 255, 255))
-            # Draw a solid blue circle in the center
-            # vertices = self.vertex_matrix.vertices
-            vertices = self.to_pygame_coordinates(self.vertex_matrix.vertices)
-            for vertex in vertices:
-                # print(int(vertex.x), int(vertex.y))
+            # Draw a solid blue circle for each vertex
+            for vertex in self.vertex_matrix.get_vertices():
                 pg.draw.circle(screen, (0, 0, 255), (int(vertex.x), int(vertex.y)), 5)
+            # we sort the faces by their z coordinate
             self.faces = sort_faces(self.faces)
             for face in self.faces:
                 vertices = face.get_vertices()
                 if mode == 'part1':
-                    vertices = self.to_pygame_coordinates(vertices)
+                    #for vertex in vertices:
+                        #print(vertex.x, vertex.y, vertex.z)
                     # draw edges between vertices
                     pg.draw.line(screen, (0, 0, 255), (int(vertices[0].x), int(vertices[0].y)), (int(vertices[1].x), int(vertices[1].y)))
                     pg.draw.line(screen, (0, 0, 255), (int(vertices[1].x), int(vertices[1].y)), (int(vertices[2].x), int(vertices[2].y)))
@@ -80,8 +72,6 @@ class Graphics():
                 elif mode == 'part2':
                     # draw polygon
                     color = self.get_polygon_color(vertices[0], vertices[1], vertices[2])
-                    # only display polygons in the front
-                    vertices = self.to_pygame_coordinates(vertices)
                     pg.draw.polygon(screen,
                                     color,
                                     [(int(vertices[0].x), int(vertices[0].y)),
@@ -103,10 +93,10 @@ class Graphics():
         if mouse_movement[0] == 0 and mouse_movement[1] == 0:
             return
         else:
-            theta = -mouse_movement[1] * 0.01
+            theta = mouse_movement[1] * 0.001
             self.vertex_matrix.rotate_along_axis(theta, 'x')
 
-            theta = mouse_movement[0] * 0.01
+            theta = -mouse_movement[0] * 0.001
             self.vertex_matrix.rotate_along_axis(theta, 'y')
     
     def get_polygon_color(self, v1, v2, v3):
@@ -134,17 +124,6 @@ class Graphics():
         Given 3 vertices, find the angle between the surface and the z-axis
         """
         # Get the normal vector of the surface
-        normal = self.get_normal(v1, v2, v3)
-        # Get the angle between the normal and the z-axis
-        # angle = np.arccos(normal[2] / np.linalg.norm(normal)) * 180 / np.pi
-        dot = np.dot(np.array([0,0,1]), normal)
-        angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi) - 90.0
-        return angle
-    
-    def get_normal(self, v1, v2, v3):
-        """
-        Given 3 vertices, find the normal vector of the surface
-        """
         # Get the 2 vectors of the surface
         v1 = np.array([v1.x, v1.y, v1.z])
         v2 = np.array([v2.x, v2.y, v2.z])
@@ -153,4 +132,8 @@ class Graphics():
         v13 = v3 - v1
         # Get the cross product of the 2 vectors
         normal = np.cross(v12, v13)
-        return normal
+        # Get the angle between the normal and the z-axis
+        # angle = np.arccos(normal[2] / np.linalg.norm(normal)) * 180 / np.pi
+        dot = np.dot(np.array([0,0,1]), normal)
+        angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi) - 90.0
+        return angle
