@@ -28,7 +28,7 @@ class Graphics():
         for vertex in vertices:
             vertex.x = vertex.x * self.scale + self.origin[0]
             vertex.y = vertex.y * self.scale + self.origin[1]
-            vertex.z = vertex.z * self.scale + self.origin[1]
+            vertex.z = vertex.z * self.scale + self.origin[0]
         self.vertex_matrix.update_matrix(vertices)
 
     def plot(self, mode='part1'):
@@ -52,7 +52,6 @@ class Graphics():
                     self.curr_mouse_pos = np.array(pg.mouse.get_pos())
                     if pg.mouse.get_pressed()[0]:
                         # If the user is dragging the mouse, update the vertices
-
                         self.update()
             # Fill the background with white
             screen.fill((255, 255, 255))

@@ -60,6 +60,7 @@ class VertexMatrix():
             vertex.x = self.matrix[0][i]
             vertex.y = self.matrix[1][i]
             vertex.z = self.matrix[2][i]
+        self.update_matrix(self.vertices)
 
 def sort_faces(faces):
     """
