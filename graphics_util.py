@@ -1,46 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from data_util import Vertex, Edge, Face, read_file, VertexMatrix
-from matrix_util import matrix_multiplication, rotation_along_axis
+from data_util import Vertex
 import pygame as pg
-
-"""
-Using 2D graphics only, create a window which will display a 3D object defined by vertices and 
-the edges of the faces of the object. 
-Represent the vertices using small, filled blue circles, and the edges using straight blue lines. 
-The edges will be lines which go between the vertices, and the faces should be transparent, 
-such that a wireframe of the 3D object is displayed. 
-Make the object fill approximately half of the window both vertically and horizontally. 
-
-Set up the coordinate frame of the window such that:
-the positive X-axis is pointing horizontally to the right,
-the positive Y-axis is pointing vertically upward,
-the positive Z-axis is pointing out of the plane of the window toward the observer, and
-the origin is at the center of the window.
-Assume that the observer is an infinite distance from the canvas.
-
-Now write code to read and display any 3D object from a comma-separated text file specified by the user. 
-A sample object text file is attached in “object.txt.” The format of the file is:
-The first line contains two integers. 
-The first integer is the number of vertices that define the 3D object, 
-and the second number is the number of faces that define the 3D object.
-Starting at the second line each line will define one vertex of the 3D object 
-and will consist of an integer followed by three real numbers. 
-The integer is the ID of the vertex and the three real numbers define the (x,y,z) coordinates of the vertex. 
-The number of lines in this section will be equal to the first integer in the file.
-Following the vertex section will be a section defining the faces of the 3D object. 
-The number of lines in this section will be equal to the second integer on the first line of the file. 
-Each line in this section will consist of three integers that define a triangle that is a face of the object. 
-The three integers each refer to the ID of a vertex from the second section of the file.
-
-Add click and drag mouse functionality such that while the mouse button is pressed, 
-movement of the mouse rotates the object thusly:
-Horizontal movement of the mouse rotates the 3D object about the window's Y-axis.
-Vertical movement of the mouse rotates the 3D object about the window's X-axis.
-Diagonal movement of the mouse is decomposed into vertical and horizontal components and 
-rotates the 3D object accordingly as above.
-The point of the object nearest to the observer follows the mouse's direction
-"""
 
 class Graphics():
     def __init__(self, vertex_matrix, faces):
@@ -51,6 +11,8 @@ class Graphics():
         self.dragging = False
         self.prev_mouse_pos = np.array([0, 0])
         self.curr_mouse_pos = np.array([0, 0])
+        self.color_limit_low = "0x00005F"
+        self.color_limit_high = "0x0000FF"
     
     def to_pygame_coordinates(self, vertices):
         """
@@ -67,7 +29,7 @@ class Graphics():
             game_vertices.append(Vertex(x, y, vertex.z))
         return game_vertices
 
-    def plot(self):
+    def plot(self, mode='part1'):
         """
         Plot 3D vertices and edges in 2D space with pygame
         """
@@ -112,10 +74,22 @@ class Graphics():
                 pg.draw.circle(screen, (0, 0, 255), (int(vertex.x), int(vertex.y)), 5)
             for face in self.faces:
                 vertices = face.get_vertices()
-                vertices = self.to_pygame_coordinates(vertices)
-                pg.draw.line(screen, (0, 0, 255), (int(vertices[0].x), int(vertices[0].y)), (int(vertices[1].x), int(vertices[1].y)))
-                pg.draw.line(screen, (0, 0, 255), (int(vertices[1].x), int(vertices[1].y)), (int(vertices[2].x), int(vertices[2].y)))
-                pg.draw.line(screen, (0, 0, 255), (int(vertices[2].x), int(vertices[2].y)), (int(vertices[0].x), int(vertices[0].y)))
+                if mode == 'part1':
+                    vertices = self.to_pygame_coordinates(vertices)
+                    # draw edges between vertices
+                    pg.draw.line(screen, (0, 0, 255), (int(vertices[0].x), int(vertices[0].y)), (int(vertices[1].x), int(vertices[1].y)))
+                    pg.draw.line(screen, (0, 0, 255), (int(vertices[1].x), int(vertices[1].y)), (int(vertices[2].x), int(vertices[2].y)))
+                    pg.draw.line(screen, (0, 0, 255), (int(vertices[2].x), int(vertices[2].y)), (int(vertices[0].x), int(vertices[0].y)))
+                elif mode == 'part2':
+                    # draw polygon
+                    color = self.get_polygon_color(vertices[0], vertices[1], vertices[2])
+                    # only display polygons in the front
+                    vertices = self.to_pygame_coordinates(vertices)
+                    pg.draw.polygon(screen,
+                                    color,
+                                    [(int(vertices[0].x), int(vertices[0].y)),
+                                     (int(vertices[1].x), int(vertices[1].y)),
+                                     (int(vertices[2].x), int(vertices[2].y))])
             # Flip the display
             pg.display.flip()
         # Done! Time to quit.
@@ -137,3 +111,47 @@ class Graphics():
 
             theta = mouse_movement[0] * 0.01
             self.vertex_matrix.rotate_along_axis(theta, 'y')
+    
+    def get_polygon_color(self, v1, v2, v3):
+        """
+        Given 3 vertices, find the color of the polygong according to the angle between this surface and the z-axis
+        Color needs to be calculated in between the color limit low and high
+        Color will be limit high if the angle is 0 and color will be limit low if the angle is 90
+        """
+        # Get the angle between the surface and the z-axis
+        angle = self.get_angle(v1, v2, v3)
+        # Calculate the color
+        # interpolate between the color limit low and high according to angle between 0 to 90
+        color_range = int(self.color_limit_high, 16) - int(self.color_limit_low, 16)
+        color = int(self.color_limit_low, 16) + int(angle / 90 * color_range)
+        color = abs(color)
+        color = hex(color)
+        # convert from hex to rgb
+        color = (0,0,int(color[2:], 16))
+        return color
+    
+    def get_angle(self, v1, v2, v3):
+        """
+        Given 3 vertices, find the angle between the surface and the z-axis
+        """
+        # Get the normal vector of the surface
+        normal = self.get_normal(v1, v2, v3)
+        # Get the angle between the normal and the z-axis
+        # angle = np.arccos(normal[2] / np.linalg.norm(normal)) * 180 / np.pi
+        dot = np.dot(np.array([0,0,1]), normal)
+        angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi) - 90.0
+        return angle
+    
+    def get_normal(self, v1, v2, v3):
+        """
+        Given 3 vertices, find the normal vector of the surface
+        """
+        # Get the 2 vectors of the surface
+        v1 = np.array([v1.x, v1.y, v1.z])
+        v2 = np.array([v2.x, v2.y, v2.z])
+        v3 = np.array([v3.x, v3.y, v3.z])
+        v12 = v2 - v1
+        v13 = v3 - v1
+        # Get the cross product of the 2 vectors
+        normal = np.cross(v12, v13)
+        return normal

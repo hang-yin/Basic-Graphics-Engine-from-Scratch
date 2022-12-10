@@ -88,4 +88,5 @@ def read_file(file_name):
         for i in range(num_faces):
             f = lines[i+1+num_vertices].split(',')
             faces.append(Face(vertices[int(f[0])-1], vertices[int(f[1])-1], vertices[int(f[2])-1]))
-        return vertices, faces
+        vertex_matrix = VertexMatrix(vertices)
+        return vertex_matrix, faces
