@@ -1,5 +1,5 @@
 import numpy as np
-from data_util import Vertex
+from data_util import Vertex, sort_faces
 import pygame as pg
 
 class Graphics():
@@ -72,6 +72,7 @@ class Graphics():
             for vertex in vertices:
                 # print(int(vertex.x), int(vertex.y))
                 pg.draw.circle(screen, (0, 0, 255), (int(vertex.x), int(vertex.y)), 5)
+            self.faces = sort_faces(self.faces)
             for face in self.faces:
                 vertices = face.get_vertices()
                 if mode == 'part1':
@@ -120,11 +121,13 @@ class Graphics():
         """
         # Get the angle between the surface and the z-axis
         angle = self.get_angle(v1, v2, v3)
+        angle = abs(angle)
         # Calculate the color
         # interpolate between the color limit low and high according to angle between 0 to 90
         color_range = int(self.color_limit_high, 16) - int(self.color_limit_low, 16)
         color = int(self.color_limit_low, 16) + int(angle / 90 * color_range)
-        color = abs(color)
+        # color = abs(color)
+        # print(color)
         color = hex(color)
         # convert from hex to rgb
         color = (0,0,int(color[2:], 16))

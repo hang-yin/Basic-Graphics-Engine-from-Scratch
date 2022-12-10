@@ -72,6 +72,15 @@ class VertexMatrix():
             vertex.y = self.matrix[1][i]
             vertex.z = self.matrix[2][i]
 
+def sort_faces(faces):
+    """
+    Sort the faces by z-value from low to high
+    """
+    sorted_faces = sorted(faces, key=lambda face: (face.v1.z + face.v2.z + face.v3.z) / 3)
+    # reverse the list so that the faces are sorted from high to low
+    sorted_faces.reverse()
+    return sorted_faces
+
 def read_file(file_name):
     """
     Read a file and return a list of vertices and a list of faces
