@@ -97,7 +97,9 @@ class Graphics():
                         self.prev_mouse_pos = self.curr_mouse_pos
                         self.curr_mouse_pos = np.array(pg.mouse.get_pos())
                         self.update()
+                    else:
                         self.prev_mouse_pos = self.curr_mouse_pos
+                        self.curr_mouse_pos = np.array(pg.mouse.get_pos())
                     
             # set origin to center of screen
             # Fill the background with white
