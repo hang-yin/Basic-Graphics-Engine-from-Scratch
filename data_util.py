@@ -5,14 +5,6 @@ class Vertex():
         self.x = x
         self.y = y
         self.z = z
-
-class Edge():
-    def __init__(self, v1, v2):
-        self.v1 = v1
-        self.v2 = v2
-    
-    def get_vertices(self):
-        return [self.v1, self.v2]
     
 class Face():
     def __init__(self, v1, v2, v3):
@@ -22,9 +14,6 @@ class Face():
     
     def get_vertices(self):
         return [self.v1, self.v2, self.v3]
-    
-    def get_edges(self):
-        return [Edge(self.v1, self.v2), Edge(self.v2, self.v3), Edge(self.v3, self.v1)]
 
 class VertexMatrix():
     def __init__(self, vertices):
@@ -32,9 +21,7 @@ class VertexMatrix():
         self.matrix = self.create_matrix()
     
     def create_matrix(self):
-        """
-        Create a matrix of vertices
-        """
+        """Create a matrix of vertices"""
         matrix = np.zeros((3, len(self.vertices)))
         for i, vertex in enumerate(self.vertices):
             matrix[0][i] = vertex.x
@@ -43,14 +30,20 @@ class VertexMatrix():
         return matrix
     
     def get_matrix(self):
+        """Get the matrix"""
         return self.matrix
     
     def get_vertices(self):
+        """Get the vertices"""
         return self.vertices
     
     def rotate_along_axis(self, theta, axis):
         """
-        Rotate the vertices along an axis
+        Rotate the vertices along an axis for a given angle.
+
+        Input: 
+            theta: the angle to rotate
+            axis: the axis to rotate along ('x', 'y', or 'z')
         """
         if axis == 'x':
             rotation_matrix = np.array([[1, 0, 0], [0, np.cos(theta), -np.sin(theta)], [0, np.sin(theta), np.cos(theta)]])
@@ -61,12 +54,7 @@ class VertexMatrix():
         else:
             raise ValueError("Axis must be 'x', 'y', or 'z'")
         self.matrix = np.dot(rotation_matrix, self.matrix)
-        self.update_vertices()
-    
-    def update_vertices(self):
-        """
-        Update the vertices with the new matrix
-        """
+        # Update the vertices with the new matrix
         for i, vertex in enumerate(self.vertices):
             vertex.x = self.matrix[0][i]
             vertex.y = self.matrix[1][i]
@@ -74,16 +62,26 @@ class VertexMatrix():
 
 def sort_faces(faces):
     """
-    Sort the faces by z-value from low to high
+    Sort the faces by z-value from low to high.
+
+    Input:
+        faces: a list of Face objects
+    Output:
+        sorted_faces: a list of Face objects sorted by z-value
     """
     sorted_faces = sorted(faces, key=lambda face: (face.v1.z + face.v2.z + face.v3.z) / 3)
-    # reverse the list so that the faces are sorted from high to low
     sorted_faces.reverse()
     return sorted_faces
 
 def read_file(file_name):
     """
-    Read a file and return a list of vertices and a list of faces
+    Read a file and return a list of vertices and a list of faces.
+
+    Input: 
+        file_name: the name of the file to read
+    Output:
+        vertex_matrix: a VertexMatrix object
+        faces: a list of Face objects
     """
     with open(file_name, 'r') as f:
         lines = f.readlines()

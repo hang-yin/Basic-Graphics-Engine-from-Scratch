@@ -1,5 +1,5 @@
 from graphics_util import Graphics
-from data_util import VertexMatrix, read_file
+from data_util import read_file
 
 def main():
     vertex_matrix, faces = read_file('object.txt')
