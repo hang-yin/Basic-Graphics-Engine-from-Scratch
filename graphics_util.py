@@ -8,11 +8,15 @@ class Graphics():
         # self.vertices = vertex_matrix.vertices
         self.faces = faces
         self.screen_size = np.array([800, 800])
-        self.dragging = False
         self.prev_mouse_pos = np.array([0, 0])
         self.curr_mouse_pos = np.array([0, 0])
         self.color_limit_low = "0x00005F"
         self.color_limit_high = "0x0000FF"
+        vertices = vertex_matrix.get_vertices()
+        max_x_coord = max([vertex.x for vertex in vertices])
+        max_y_coord = max([vertex.y for vertex in vertices])
+        max_coord = max([max_x_coord, max_y_coord])
+        self.scale = 0.25 * min(self.screen_size) / max_coord
     
     def to_pygame_coordinates(self, vertices):
         """
@@ -22,10 +26,10 @@ class Graphics():
         # set origin to center of screen
         origin = self.screen_size / 2
         # scale the vertices to fit the screen
-        scale = 0.2 * min(self.screen_size)
+        
         for vertex in vertices:
-            x = vertex.x * scale + origin[0]
-            y = vertex.y * scale + origin[1]
+            x = vertex.x * self.scale + origin[0]
+            y = vertex.y * self.scale + origin[1]
             game_vertices.append(Vertex(x, y, vertex.z))
         return game_vertices
 
@@ -45,16 +49,8 @@ class Graphics():
                 # Did the user click the window close button?
                 if event.type == pg.QUIT:
                     running = False
-                # Did the user click the mouse button?
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    # If the user clicked the mouse button, set drag state
-                    self.dragging = True
-                # Did the user release the mouse button?
-                if event.type == pg.MOUSEBUTTONUP:
-                    # If the user released the mouse button, set drag state
-                    self.dragging = False
                 if event.type == pg.MOUSEMOTION:
-                    if self.dragging and pg.mouse.get_pressed()[0]:
+                    if pg.mouse.get_pressed()[0]:
                         # If the user is dragging the mouse, update the vertices
                         self.prev_mouse_pos = self.curr_mouse_pos
                         self.curr_mouse_pos = np.array(pg.mouse.get_pos())
