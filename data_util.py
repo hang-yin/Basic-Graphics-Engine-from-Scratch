@@ -72,7 +72,6 @@ def sort_faces(faces):
         sorted_faces: a list of Face objects sorted by z-value
     """
     sorted_faces = sorted(faces, key=lambda face: (face.v1.z + face.v2.z + face.v3.z) / 3)
-    sorted_faces.reverse()
     return sorted_faces
 
 def read_file(file_name):
