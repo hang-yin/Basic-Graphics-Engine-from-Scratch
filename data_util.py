@@ -18,16 +18,17 @@ class Face():
 class VertexMatrix():
     def __init__(self, vertices):
         self.vertices = vertices
-        self.matrix = self.create_matrix()
+        self.matrix = None
+        self.update_matrix(self.vertices)
     
-    def create_matrix(self):
+    def update_matrix(self, vertices):
         """Create a matrix of vertices"""
-        matrix = np.zeros((3, len(self.vertices)))
-        for i, vertex in enumerate(self.vertices):
+        matrix = np.zeros((3, len(vertices)))
+        for i, vertex in enumerate(vertices):
             matrix[0][i] = vertex.x
             matrix[1][i] = vertex.y
             matrix[2][i] = vertex.z
-        return matrix
+        self.matrix = matrix
     
     def get_matrix(self):
         """Get the matrix"""
