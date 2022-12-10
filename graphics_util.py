@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from data_util import Vertex, Edge, Face, read_file
+from data_util import Vertex, Edge, Face, read_file, VertexMatrix
 from matrix_util import matrix_multiplication, rotation_along_axis
 import pygame as pg
 
@@ -43,22 +43,29 @@ The point of the object nearest to the observer follows the mouse's direction
 """
 
 class Graphics():
-    def __init__(self, vertices, faces):
-        self.vertices = vertices
+    def __init__(self, vertex_matrix, faces):
+        self.vertex_matrix = vertex_matrix
+        # self.vertices = vertex_matrix.vertices
         self.faces = faces
         self.screen_size = np.array([800, 800])
+        self.dragging = False
+        self.prev_mouse_pos = np.array([0, 0])
+        self.curr_mouse_pos = np.array([0, 0])
     
-    def to_pygame_coordinates(self):
+    def to_pygame_coordinates(self, vertices):
         """
         Change the coordinates of the vertices to pygame coordinates
         """
+        game_vertices = []
         # set origin to center of screen
         origin = self.screen_size / 2
         # scale the vertices to fit the screen
         scale = 0.2 * min(self.screen_size)
-        for vertex in self.vertices:
-            vertex.x = vertex.x * scale + origin[0]
-            vertex.y = vertex.y * scale + origin[1]
+        for vertex in vertices:
+            x = vertex.x * scale + origin[0]
+            y = vertex.y * scale + origin[1]
+            game_vertices.append(Vertex(x, y, vertex.z))
+        return game_vertices
 
     def plot(self):
         """
@@ -71,18 +78,39 @@ class Graphics():
         # Run until the user asks to quit
         running = True
         while running:
-            # Did the user click the window close button?
+            
             for event in pg.event.get():
+                # Did the user click the window close button?
                 if event.type == pg.QUIT:
                     running = False
+                # Did the user click the mouse button?
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    # If the user clicked the mouse button, set drag state
+                    self.dragging = True
+                # Did the user release the mouse button?
+                if event.type == pg.MOUSEBUTTONUP:
+                    # If the user released the mouse button, set drag state
+                    self.dragging = False
+                if event.type == pg.MOUSEMOTION:
+                    if self.dragging and pg.mouse.get_pressed()[0]:
+                        # If the user is dragging the mouse, update the vertices
+                        self.prev_mouse_pos = self.curr_mouse_pos
+                        self.curr_mouse_pos = np.array(pg.mouse.get_pos())
+                        self.update()
+                        self.prev_mouse_pos = self.curr_mouse_pos
+                    
             # set origin to center of screen
             # Fill the background with white
             screen.fill((255, 255, 255))
             # Draw a solid blue circle in the center
-            for vertex in self.vertices:
+            # vertices = self.vertex_matrix.vertices
+            vertices = self.to_pygame_coordinates(self.vertex_matrix.vertices)
+            for vertex in vertices:
+                # print(int(vertex.x), int(vertex.y))
                 pg.draw.circle(screen, (0, 0, 255), (int(vertex.x), int(vertex.y)), 5)
             for face in self.faces:
                 vertices = face.get_vertices()
+                vertices = self.to_pygame_coordinates(vertices)
                 pg.draw.line(screen, (0, 0, 255), (int(vertices[0].x), int(vertices[0].y)), (int(vertices[1].x), int(vertices[1].y)))
                 pg.draw.line(screen, (0, 0, 255), (int(vertices[1].x), int(vertices[1].y)), (int(vertices[2].x), int(vertices[2].y)))
                 pg.draw.line(screen, (0, 0, 255), (int(vertices[2].x), int(vertices[2].y)), (int(vertices[0].x), int(vertices[0].y)))
@@ -90,4 +118,20 @@ class Graphics():
             pg.display.flip()
         # Done! Time to quit.
         pg.quit()
+    
+    def update(self):
+        """
+        Update the vertices and faces according to mouse drag
+        Need to incorporate rotation along x, y, and z axis using matrix operations
+        """
+        # Get the mouse movement
+        mouse_movement = self.prev_mouse_pos - self.curr_mouse_pos
 
+        if mouse_movement[0] == 0 and mouse_movement[1] == 0:
+            return
+        else:
+            theta = -mouse_movement[1] * 0.01
+            self.vertex_matrix.rotate_along_axis(theta, 'x')
+
+            theta = mouse_movement[0] * 0.01
+            self.vertex_matrix.rotate_along_axis(theta, 'y')
