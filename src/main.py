@@ -2,7 +2,7 @@ from graphics_util import Graphics
 from data_util import read_file
 
 def main():
-    vertex_matrix, faces = read_file('examples/object.txt')
+    vertex_matrix, faces = read_file('examples/object2.txt')
     graphics = Graphics(vertex_matrix=vertex_matrix,
                         faces=faces,
                         window_size=(800,800),

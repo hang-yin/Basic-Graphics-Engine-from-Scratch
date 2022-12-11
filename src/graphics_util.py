@@ -178,5 +178,10 @@ class Graphics():
         normal = np.cross(v12, v13)
         # Get the angle between the normal and the z-axis
         dot = np.dot(np.array([0,0,1]), normal)
-        angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi) - 90.0
-        return angle
+        angle = (np.arccos(dot / np.linalg.norm(normal)) * 180 / np.pi)
+        # if angle is not a number, return 0
+        if np.isnan(angle):
+            return 0
+        else:
+            angle = angle - 90.0
+            return angle
