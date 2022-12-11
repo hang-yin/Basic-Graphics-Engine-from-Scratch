@@ -18,7 +18,8 @@ This package uses 2D graphics to display a 3D object defined by vertices and the
 
 ## Part1 Video
 
+https://user-images.githubusercontent.com/60046203/206880390-12c15f29-3187-4378-a79b-dcd33e39abad.mov
 
 ## Part2 Video
 
-
+https://user-images.githubusercontent.com/60046203/206880394-2709ce17-bc75-44d0-91ab-e34f02d482f9.mov
