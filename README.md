@@ -23,3 +23,11 @@ https://user-images.githubusercontent.com/60046203/206880390-12c15f29-3187-4378-
 ## Part2 Video
 
 https://user-images.githubusercontent.com/60046203/206880394-2709ce17-bc75-44d0-91ab-e34f02d482f9.mov
+
+## Cube Video
+
+https://user-images.githubusercontent.com/60046203/206881508-d5ffc30f-3085-416e-8508-7b584fe27195.mov
+
+## Cone Video
+
+https://user-images.githubusercontent.com/60046203/206881515-b6262226-8517-49f6-a463-a387b8b4b166.mov
